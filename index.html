@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Whispers of the Arcane</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Courier New', Courier, monospace;
+      background: linear-gradient(135deg, #0f0f1f, #1e1e3a);
+      color: #f8f8f2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      transition: background 0.5s ease;
+    }
+    #game {
+      width: 80%;
+      max-width: 800px;
+      background: #222236;
+      border-radius: 20px;
+      box-shadow: 0 0 25px rgba(255, 255, 255, 0.15);
+      padding: 20px;
+      overflow-y: auto;
+      height: 90vh;
+      display: flex;
+      flex-direction: column;
+    }
+    #output {
+      flex-grow: 1;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+    }
+    #mana {
+      font-weight: bold;
+      color: #a29bfe;
+      margin-bottom: 10px;
+    }
+    #inputArea {
+      display: flex;
+    }
+    #command {
+      flex-grow: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1em;
+      background: #333;
+      color: white;
+    }
+    #submit {
+      padding: 10px 20px;
+      margin-left: 10px;
+      background: #6c5ce7;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #submit:hover {
+      background: #a29bfe;
+    }
+    #toggleJournal {
+      margin-right: 10px;
+      background: #444;
+      color: #f8f8f2;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      cursor: pointer;
+    }
+    #toggleJournal:hover {
+      background: #666;
+    }
+    #journal {
+      display:none;
+      background:#1e1e2f;
+      padding:10px;
+      border-radius:10px;
+      margin-top:10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <div id="mana">🔋 Mana: <span id="manaCount">100</span></div>
+    <div style="margin-bottom:10px;">
+      <button id="toggleJournal">📔 Journal</button>
+    </div>
+    <div id="journal">
+      <strong>Clues:</strong>
+      <ul id="clueList"></ul>
+    </div>
+    <div id="output">🔮 Welcome to a Detective Fantasy, Mr. Detective. Type <code>start</code> to begin your journey into the Library of Shadows...</div>
+    <div id="inputArea">
+      <input type="text" id="command" placeholder="Type a command...">
+      <button id="submit">Enter</button>
+    </div>
+  </div>
+  <script>
+    const output = document.getElementById('output');
+    const command = document.getElementById('command');
+    const submit = document.getElementById('submit');
+    const manaDisplay = document.getElementById('manaCount');
+    const toggleJournal = document.getElementById('toggleJournal');
+    const journal = document.getElementById('journal');
+    const clueList = document.getElementById('clueList');
+
+    let gameState = 'intro';
+    let userProfile = {
+      mana: 100,
+      powers: [],
+      clues: [],
+      achievements: []
+    };
+
+    const gachaPool = [
+      { name: 'Aether, Spirit Fox', power: 'Reveals hidden paths' },
+      { name: 'Nyra the Flame Witch', power: 'Burns false clues' },
+      { name: 'Murmur, Whispering Skull', power: 'Speaks forgotten secrets' },
+      { name: 'Tome Elemental', power: 'Analyzes ancient text' },
+      { name: 'Grimgloom Shade', power: 'Spooks suspects into talking' }
+    ];
+
+    toggleJournal.addEventListener('click', () => {
+      journal.style.display = journal.style.display === 'none' ? 'block' : 'none';
+    });
+
+    function print(text) {
+      output.innerHTML += `\n${text}`;
+      output.scrollTop = output.scrollHeight;
+    }
+
+    function updateMana(amount) {
+      userProfile.mana += amount;
+      if (userProfile.mana < 0) userProfile.mana = 0;
+      if (userProfile.mana > 150) userProfile.mana = 150;
+      manaDisplay.textContent = userProfile.mana;
+    }
+
+    function randomEvent() {
+      const events = [
+        "🌫️ A wisp whispers a riddle: 'What has keys but can't open doors? (Type 'answer:ans')",
+        "📖 A tome flies off the shelf and opens itself!",
+        "🕯️ A candle flares, revealing a hidden rune.",
+        "👻 A spirit passes through you, draining 10 mana!"
+      ];
+      const index = Math.floor(Math.random() * events.length);
+      print(events[index]);
+      if (index === 3) updateMana(-10);
+    }
+
+    function handleCommand(cmd) {
+      cmd = cmd.toLowerCase();
+      if (cmd === 'start') {
+        print("\n📚 Case #001: The Library of Shadows");
+        print("You enter the forgotten archives, where a tome of forbidden knowledge has vanished.");
+        print("Type 'summon', 'explore', 'interrogate', 'analyze', 'cast', 'rest', 'profile', 'finale'.");
+        gameState = 'playing';
+        return;
+      }
+
+      if (cmd === 'profile') {
+        print(`📜 Profile:\nMana: ${userProfile.mana}\nPowers: ${userProfile.powers.join(', ') || 'None'}\nClues: ${userProfile.clues.length}`);
+        return;
+      }
+
+      if (gameState !== 'playing') {
+        print("Type 'start' to begin the game.");
+        return;
+      }
+
+      switch(cmd) {
+        case 'summon': {
+          const ally = gachaPool[Math.floor(Math.random() * gachaPool.length)];
+          print(`✨ You summoned ${ally.name}! Power: ${ally.power}`);
+          userProfile.powers.push(ally.power);
+          randomEvent();
+          break;
+        }
+        case 'explore': {
+          print("🕯️ You find a mysterious inscription: 'I speak without a mouth and hear without ears. I have nobody, but I come alive with the wind.' (Type 'answer:ans')");
+          const clue = 'Whispered riddle etched into the wall.';
+          clueList.innerHTML += `<li>${clue}</li>`;
+          userProfile.clues.push(clue);
+          updateMana(5);
+          randomEvent();
+          break;
+        }
+        case 'interrogate': {
+          print("🧙 The enchanted custodian speaks in riddles: 'I have no voice but can be heard. What am I?' (Type 'answer:ans')");
+          const clue = 'Custodian hinted about a hidden seal.';
+          clueList.innerHTML += `<li>${clue}</li>`;
+          userProfile.clues.push(clue);
+          randomEvent();
+          break;
+        }
+        case 'analyze': {
+          print("🔍 You analyze dust patterns... a faint trail leads left.");
+          const clue = 'Dust disturbed recently near the west wing.';
+          clueList.innerHTML += `<li>${clue}</li>`;
+          userProfile.clues.push(clue);
+          updateMana(-5);
+          break;
+        }
+        case 'cast': {
+          if (userProfile.mana >= 30) {
+            print("🔮 You channel arcane energy... A ward surrounds you.");
+            userProfile.powers.push('Protective Ward');
+            updateMana(-30);
+          } else {
+            print("❌ Not enough mana to cast! (30 needed)");
+          }
+          break;
+        }
+        case 'rest': {
+          print("💤 You rest quietly. Energy restored.");
+          updateMana(20);
+          break;
+        }
+        case 'finale': {
+          if (userProfile.clues.length >= 5 && userProfile.mana >= 100) {
+            print("📖 You find the lost tome, its pages glowing with forbidden knowledge. The Library's secrets are now yours.");
+            print("🎉 Congratulations, detective! You have solved the mystery of the Library of Shadows!");
+            gameState = 'ended';
+          } else {
+            print("❓ You haven't gathered enough clues or mana yet. Keep searching the Library. Need: 100+ Mana, 5+ clues");
+          }
+          break;
+        }
+        default:
+          if(cmd.startsWith('answer:')){
+            const answer = cmd.split(':')[1].trim();
+            if(['piano','echo'].includes(answer)){
+              print("🗝️ Correct! The riddle grants you insight and +15 mana.");
+              updateMana(15);
+            } else {
+              print("❌ That answer doesn't seem right.");
+            }
+          } else {
+            print("❓ Unknown command. Try: summon, explore, interrogate, analyze, cast, rest, profile, finale");
+          }
+      }
+    }
+
+    submit.addEventListener('click', () => {
+      const cmd = command.value.trim();
+      if (cmd) {
+        print(`\n> ${cmd}`);
+        handleCommand(cmd);
+        command.value = '';
+        command.focus();
+      }
+    });
+
+    command.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') submit.click();
+    });
+  </script>
+</body>
+</html>
